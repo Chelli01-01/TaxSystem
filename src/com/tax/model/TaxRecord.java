@@ -23,11 +23,21 @@ public class TaxRecord {
 	public String getAddress() {return address;}
 	public  String getEmpType() {return employmentType;}
 	public double getAnnualIncome() {return annualIncome;}
+	public double getDepAllowance() { return depAllowance; }
+	public double getMedAllowance() { return medAllowance; }
+	public double getTaxableAmount() { return taxableAmount; }
+	public double getTaxPayable() { return taxPayable; }
 	
 	//Mutators
 	
 	public void setNic(String nic) {this.nic=nic;}
 	public void setName(String name) {this.name= name;}
 	public void setAnnualIncome(double income) {this.annualIncome=income;}
+	public void setAddress(String address) { this.address = address; }
+	public void setEmpType(String type) { this.employmentType = type; }
+	public void setDepAllowance(double dep) { this.depAllowance = dep; }
+	public void setMedAllowance(double med) { this.medAllowance = med; }
+	public void setTaxableAmount(double amount) { this.taxableAmount = amount; }
+	public void setTaxPayable(double tax) { this.taxPayable = tax; }
 	
 }
