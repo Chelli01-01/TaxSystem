@@ -2,7 +2,7 @@ package com.tax.model;
 
 public class TaxRecord {
 	
-	private String nic,name,address,employmentType;
+	private String nic,name,address,contactNum,employmentType;
 	private double annualIncome, depAllowance, medAllowance, taxableAmount, taxPayable;
 	
 	//Defined Constructor
@@ -21,6 +21,7 @@ public class TaxRecord {
 	public String getNic() {return nic;}
 	public  String getName() {return name;}
 	public String getAddress() {return address;}
+	public String getContactNum() {return contactNum;}
 	public  String getEmpType() {return employmentType;}
 	public double getAnnualIncome() {return annualIncome;}
 	public double getDepAllowance() { return depAllowance; }
@@ -34,6 +35,7 @@ public class TaxRecord {
 	public void setName(String name) {this.name= name;}
 	public void setAnnualIncome(double income) {this.annualIncome=income;}
 	public void setAddress(String address) { this.address = address; }
+	public void setContactNum(String contactNum) {this.contactNum=contactNum;}
 	public void setEmpType(String type) { this.employmentType = type; }
 	public void setDepAllowance(double dep) { this.depAllowance = dep; }
 	public void setMedAllowance(double med) { this.medAllowance = med; }
