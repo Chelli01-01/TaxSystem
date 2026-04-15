@@ -1,75 +1,88 @@
 package com.tax.gui;
 
 import javax.swing.*;
+import javax.swing.border.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 
 public class LoginFrame extends JFrame {
 
-    /**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	private JTextField userField = new JTextField(15);
-    private JPasswordField passField = new JPasswordField(15);
-    private JButton btnLogin = new JButton("Login");
+    private JTextField usernameField;
+    private JPasswordField passwordField;
+
+    private final Color PRIMARY_BLUE = new Color(0, 51, 102); 
+    private final Color BG_COLOR = new Color(245, 247, 250);
 
     public LoginFrame() {
-        setTitle("MTMS - System Login");
-        setSize(400, 250);
+        setTitle("System Login - Tax Management");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
-        setLayout(new GridBagLayout());
-        getContentPane().setBackground(new Color(245, 247, 250));
+        setSize(400, 350); 
+        setLocationRelativeTo(null); 
+        getContentPane().setBackground(BG_COLOR);
+        setLayout(new BorderLayout());
+
+        // --- 1. Header Section ---
+        JPanel header = new JPanel();
+        header.setBackground(PRIMARY_BLUE);
+        JLabel title = new JLabel("Admin Login");
+        title.setForeground(Color.WHITE);
+        title.setFont(new Font("SansSerif", Font.BOLD, 20));
+        header.add(title);
+        header.setBorder(new EmptyBorder(15, 10, 15, 10));
+        add(header, BorderLayout.NORTH);
+
+        // --- 2. Input Form ---
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(Color.WHITE);
+        formPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(10, 10, 10, 10);
 
-        // Title
-        JLabel lblTitle = new JLabel("Staff Login", SwingConstants.CENTER);
-        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 18));
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
-        add(lblTitle, gbc);
-
-        // Username
-        gbc.gridwidth = 1; gbc.gridy = 1;
-        add(new JLabel("Username:"), gbc);
+        gbc.gridx = 0; gbc.gridy = 0;
+        formPanel.add(new JLabel("Username:"), gbc);
         gbc.gridx = 1;
-        add(userField, gbc);
+        usernameField = new JTextField(15);
+        formPanel.add(usernameField, gbc);
 
-        // Password
-        gbc.gridx = 0; gbc.gridy = 2;
-        add(new JLabel("Password:"), gbc);
+        gbc.gridx = 0; gbc.gridy = 1;
+        formPanel.add(new JLabel("Password:"), gbc);
         gbc.gridx = 1;
-        add(passField, gbc);
+        passwordField = new JPasswordField(15);
+        formPanel.add(passwordField, gbc);
 
-        // Login Button
-        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2;
-        btnLogin.setBackground(new Color(0, 51, 102));
+        add(formPanel, BorderLayout.CENTER);
+
+        // --- 3. Button Section ---
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setBackground(Color.WHITE);
+        buttonPanel.setBorder(new EmptyBorder(0, 20, 20, 20));
+
+        JButton btnLogin = new JButton("Secure Login");
+        btnLogin.setBackground(new Color(40, 167, 69)); 
         btnLogin.setForeground(Color.WHITE);
-        add(btnLogin, gbc);
+        btnLogin.setFocusPainted(false);
+        btnLogin.setFont(new Font("SansSerif", Font.BOLD, 14));
+        btnLogin.setPreferredSize(new Dimension(150, 40));
 
-        // --- The Transition Logic ---
-        btnLogin.addActionListener(e -> {
-            String username = userField.getText();
-            String password = new String(passField.getPassword());
+        buttonPanel.add(btnLogin);
+        add(buttonPanel, BorderLayout.SOUTH);
 
-            // Simple hardcoded check for the demo
-            if (username.equals("admin") && password.equals("tax2026")) {
-                JOptionPane.showMessageDialog(this, "Login Successful!");
-                
-                // 1. Close this frame
-                this.dispose(); 
-                
-                // 2. Open the Main Calculator
-                new TaxMainFrame().setVisible(true); 
+        // --- Action Listener for Login ---
+        btnLogin.addActionListener((ActionEvent e) -> {
+            String user = usernameField.getText();
+            String pass = new String(passwordField.getPassword());
+
+            if (user.equals("admin") && pass.equals("admin123")) {
+                this.dispose(); // Close login window
+                SwingUtilities.invokeLater(() -> new TaxMainFrame().setVisible(true)); 
             } else {
-                JOptionPane.showMessageDialog(this, "Invalid Credentials", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, 
+                    "Invalid Username or Password.", 
+                    "Authentication Failed", 
+                    JOptionPane.ERROR_MESSAGE);
             }
         });
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new LoginFrame().setVisible(true));
     }
 }
