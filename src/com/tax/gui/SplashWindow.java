@@ -1,4 +1,4 @@
-package com.tax.gui; // Make sure this matches your other files exactly!
+package com.tax.gui; 
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -30,7 +30,7 @@ public class SplashWindow extends JWindow {
 
         // --- 1. Main Title ---
         gbc.gridy = 0;
-        JLabel title = new JLabel("Mauritius Tax Vision 2026");
+        JLabel title = new JLabel("TaxVision2026");
         title.setForeground(Color.WHITE);
         title.setFont(new Font("SansSerif", Font.BOLD, 24));
         textPanel.add(title, gbc);
@@ -80,7 +80,7 @@ public class SplashWindow extends JWindow {
                     ((Timer) e.getSource()).stop();
                     
                     // Hold the finished text on screen for 2 seconds, then launch
-                    Timer pause = new Timer(2000, ev -> {
+                    Timer pause = new Timer(1000, ev -> {
                         dispose();
                         SwingUtilities.invokeLater(() -> new LoginFrame().setVisible(true));
                     });

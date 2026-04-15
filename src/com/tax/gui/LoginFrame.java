@@ -3,97 +3,107 @@ package com.tax.gui;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
+import com.tax.database.DatabaseManager;
 
 public class LoginFrame extends JFrame {
-
-    private JTextField usernameField;
-    private JPasswordField passwordField;
-
-    private final Color PRIMARY_BLUE = new Color(0, 51, 102); 
-    private final Color BG_COLOR = new Color(245, 247, 250);
+    
+    private JTextField userField;
+    private JPasswordField passField;
 
     public LoginFrame() {
-        setTitle("System Login - Tax Management");
+        setTitle("TaxVision2026 - Secure Access");
+        setSize(450, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(400, 350); 
-        setLocationRelativeTo(null); 
-        getContentPane().setBackground(BG_COLOR);
+        setLocationRelativeTo(null);
+        getContentPane().setBackground(new Color(245, 247, 250)); 
         setLayout(new BorderLayout());
 
-        // --- 1. Header Section ---
+        // --- Corporate Header ---
         JPanel header = new JPanel();
-        header.setBackground(PRIMARY_BLUE);
-        JLabel title = new JLabel("Admin Login");
-        title.setForeground(Color.WHITE);
-        title.setFont(new Font("SansSerif", Font.BOLD, 20));
-        header.add(title);
-        header.setBorder(new EmptyBorder(15, 10, 15, 10));
+        header.setBackground(new Color(0, 51, 102)); 
+        header.setPreferredSize(new Dimension(450, 70));
+        JLabel lblHeader = new JLabel("SECURE PORTAL LOGIN");
+        lblHeader.setForeground(Color.WHITE);
+        lblHeader.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        header.add(lblHeader);
         add(header, BorderLayout.NORTH);
 
-        // --- 2. Input Form ---
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBackground(Color.WHITE);
-        formPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+     // --- Centered Login Card ---
+        JPanel wrapper = new JPanel(new GridBagLayout());
+        wrapper.setOpaque(false);
+        
+        JPanel card = new JPanel(new GridBagLayout());
+        card.setBackground(Color.WHITE);
+        card.setBorder(new CompoundBorder(
+            new LineBorder(new Color(220, 220, 220), 1),
+            new EmptyBorder(30, 40, 30, 40)
+        ));
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        gbc.gridx = 0; gbc.gridy = 0;
-        formPanel.add(new JLabel("Username:"), gbc);
-        gbc.gridx = 1;
-        usernameField = new JTextField(15);
-        formPanel.add(usernameField, gbc);
+        // --- Row 0: Username Label + Field ---
+        gbc.gridy = 0; 
+        
+        gbc.gridx = 0; // Column 0
+        gbc.weightx = 0.3; // Give label less space
+        card.add(new JLabel("Username:"), gbc);
 
-        gbc.gridx = 0; gbc.gridy = 1;
-        formPanel.add(new JLabel("Password:"), gbc);
-        gbc.gridx = 1;
-        passwordField = new JPasswordField(15);
-        formPanel.add(passwordField, gbc);
+        gbc.gridx = 1; // Column 1
+        gbc.weightx = 0.7; // Give box more space
+        userField = new JTextField(12);
+        userField.setPreferredSize(new Dimension(150, 28));
+        card.add(userField, gbc);
 
-        add(formPanel, BorderLayout.CENTER);
+        // --- Row 1: Password Label + Field ---
+        gbc.gridy = 1; 
+        
+        gbc.gridx = 0; // Column 0
+        gbc.weightx = 0.3;
+        card.add(new JLabel("Password:"), gbc);
 
-        // --- 3. Button Section ---
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setBackground(Color.WHITE);
-        buttonPanel.setBorder(new EmptyBorder(0, 20, 20, 20));
+        gbc.gridx = 1; // Column 1
+        gbc.weightx = 0.7;
+        passField = new JPasswordField(12);
+        passField.setPreferredSize(new Dimension(150, 28));
+        card.add(passField, gbc);
 
-        JButton btnLogin = new JButton("Secure Login");
-        btnLogin.setBackground(new Color(40, 167, 69)); 
+        // --- Row 2: Login Button (Spans both columns) ---
+        gbc.gridy = 2;
+        gbc.gridx = 0;
+        gbc.gridwidth = 2; // Make the button wide enough to sit under both
+        gbc.insets = new Insets(25, 0, 0, 0);
+
+        JButton btnLogin = new JButton("LOGIN");
+        btnLogin.setBackground(Color.BLACK);
         btnLogin.setForeground(Color.WHITE);
+        btnLogin.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnLogin.setPreferredSize(new Dimension(200, 40));
         btnLogin.setFocusPainted(false);
-        btnLogin.setFont(new Font("SansSerif", Font.BOLD, 14));
-        btnLogin.setPreferredSize(new Dimension(150, 40));
+        btnLogin.setOpaque(true);
+        btnLogin.setBorderPainted(false);
+        
+        card.add(btnLogin, gbc);
 
-        buttonPanel.add(btnLogin);
-        add(buttonPanel, BorderLayout.SOUTH);
+        wrapper.add(card);
+        add(wrapper, BorderLayout.CENTER);
 
-<<<<<<< HEAD
-            // Simple hardcoded check for the demo
-            if (username.equals("admin") && password.equals("tax2026")) {
-                JOptionPane.showMessageDialog(this, "Login Successful!");
-                
-                // 1. Close this frame
-                this.dispose(); 
-                
-                // 2. Navigate to MenuFrame
-                new MenuFrame().setVisible(true); 
-=======
-        // --- Action Listener for Login ---
-        btnLogin.addActionListener((ActionEvent e) -> {
-            String user = usernameField.getText();
-            String pass = new String(passwordField.getPassword());
+        // --- Logic: Database Validation ---
+        btnLogin.addActionListener(e -> {
+            DatabaseManager db = new DatabaseManager();
+            String role = db.validateLogin(userField.getText(), new String(passField.getPassword()));
 
-            if (user.equals("admin") && pass.equals("admin123")) {
-                this.dispose(); // Close login window
-                SwingUtilities.invokeLater(() -> new TaxMainFrame().setVisible(true)); 
->>>>>>> branch 'master' of https://Chelli01-01@github.com/Chelli01-01/TaxSystem
+            if (role != null) {
+                if (role.equalsIgnoreCase("admin")) {
+                    new TaxMainFrame(true).setVisible(true); 
+                } else {
+                    new MenuFrame().setVisible(true); 
+                }
+                this.dispose();
             } else {
-                JOptionPane.showMessageDialog(this, 
-                    "Invalid Username or Password.", 
-                    "Authentication Failed", 
-                    JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Invalid credentials stored in database.", 
+                    "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
     }

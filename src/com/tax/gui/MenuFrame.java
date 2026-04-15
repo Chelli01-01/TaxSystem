@@ -1,84 +1,84 @@
 package com.tax.gui;
 
 import javax.swing.*;
+import javax.swing.border.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class MenuFrame extends JFrame {
 
     public MenuFrame() {
-        // 1. Frame Setup
-        setTitle("Name for our Tax System - Main Menu");
-        setSize(500, 400);
+        setTitle("TaxVision2026 - Employee Menu");
+        setSize(500, 450); // Slightly taller for better spacing
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null); // Center the window on screen
+        setLocationRelativeTo(null); 
         setLayout(new BorderLayout());
+        getContentPane().setBackground(new Color(245, 247, 250)); // Match Login BG
 
-        // 2. Header Panel
-        JPanel headerPanel = new JPanel();
-        headerPanel.setBackground(new Color(0, 51, 102)); // Professional dark blue
-        JLabel lblTitle = new JLabel("MRA TAX MANAGEMENT SYSTEM");
+        // --- 1. Header Panel ---
+        JPanel header = new JPanel();
+        header.setBackground(new Color(0, 51, 102)); 
+        header.setPreferredSize(new Dimension(500, 70));
+        JLabel lblTitle = new JLabel("EMPLOYEE DASHBOARD");
         lblTitle.setForeground(Color.WHITE);
-        lblTitle.setFont(new Font("Arial", Font.BOLD, 18));
-        headerPanel.add(lblTitle);
-        add(headerPanel, BorderLayout.NORTH);
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        header.add(lblTitle);
+        add(header, BorderLayout.NORTH);
 
-        // 3. Center Panel (Buttons)
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new GridBagLayout());
+        // --- 2. Center Panel (The Card) ---
+        JPanel wrapper = new JPanel(new GridBagLayout());
+        wrapper.setOpaque(false);
+        
+        JPanel card = new JPanel(new GridBagLayout());
+        card.setBackground(Color.WHITE);
+        card.setBorder(new CompoundBorder(
+            new LineBorder(new Color(220, 220, 220), 1),
+            new EmptyBorder(40, 50, 40, 50)
+        ));
+
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(15, 15, 15, 15); // Padding around buttons
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-
-        JButton btnCalculator = new JButton("Open Tax Calculator");
-        JButton btnLogout = new JButton("Logout System");
-
-        // Styling Buttons
-        btnCalculator.setFont(new Font("Arial", Font.PLAIN, 14));
-        btnCalculator.setPreferredSize(new Dimension(200, 40));
-        btnLogout.setFont(new Font("Arial", Font.PLAIN, 14));
-        btnLogout.setPreferredSize(new Dimension(200, 40));
-
-        // Adding components
+        gbc.insets = new Insets(15, 0, 15, 0);
         gbc.gridx = 0;
-        gbc.gridy = 0;
-        buttonPanel.add(btnCalculator, gbc);
 
-        gbc.gridy = 1;
-        buttonPanel.add(btnLogout, gbc);
+        // --- 3. Styled Buttons ---
+        JButton btnCalc = createMenuButton("SUBMIT YOUR RETURNS");
+        JButton btnLogout = createMenuButton("LOGOUT");
+        
+        // Custom styling for Logout to distinguish it
+        btnLogout.setBackground(new Color(220, 53, 69)); // Keeping Logout red for safety
 
-        add(buttonPanel, BorderLayout.CENTER);
+        gbc.gridy = 0; card.add(btnCalc, gbc);
+        gbc.gridy = 1; card.add(btnLogout, gbc);
+        
+        wrapper.add(card);
+        add(wrapper, BorderLayout.CENTER);
 
-        // 4. Footer
-        JLabel lblFooter = new JLabel("Logged in as Administrator", SwingConstants.CENTER);
-        lblFooter.setFont(new Font("Arial", Font.ITALIC, 11));
-        add(lblFooter, BorderLayout.SOUTH);
-
-        // --- BUTTON ACTIONS ---
-
-        // Navigate to Tax Main Frame
-        btnCalculator.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                new TaxMainFrame().setVisible(true); // Open the calculator
-                dispose(); // Close this menu
-            }
+        // --- 4. Actions ---
+        btnCalc.addActionListener(e -> {
+            new TaxMainFrame(false).setVisible(true); // Employee mode (no search)
+            dispose();
         });
 
-        // Logout back to Login Frame
-        btnLogout.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int confirm = JOptionPane.showConfirmDialog(null, 
-                    "Are you sure you want to logout?", "Logout Confirmation", 
-                    JOptionPane.YES_NO_OPTION);
-                
-                if (confirm == JOptionPane.YES_OPTION) {
-                    new LoginFrame().setVisible(true); // Go back to login
-                    dispose(); // Close this menu
-                }
+        btnLogout.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to logout?", 
+                                                        "Confirm Logout", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                new LoginFrame().setVisible(true);
+                dispose();
             }
         });
+    }
+
+    
+    private JButton createMenuButton(String text) {
+        JButton btn = new JButton(text);
+        btn.setPreferredSize(new Dimension(240, 45));
+        btn.setBackground(Color.BLACK); // Matching your requested Black style
+        btn.setForeground(Color.WHITE);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btn.setFocusPainted(false);
+        btn.setBorderPainted(false);
+        btn.setOpaque(true);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        return btn;
     }
 }
