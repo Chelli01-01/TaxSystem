@@ -1,93 +1,100 @@
-package com.tax.gui;
+package com.tax.gui; // Make sure this matches your other files exactly!
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class SplashWindow extends JWindow {
     
-    // Matching your established theme
     private final Color PRIMARY_BLUE = new Color(0, 51, 102);
+    private JLabel dynamicTextLabel; // We need to access this inside our animation timer
 
     public SplashWindow() {
-        // Set the size and center it on the screen
         setSize(500, 300);
         setLocationRelativeTo(null);
-
-        // FIX: Apply the color directly to the window's absolute base layer
         getContentPane().setBackground(PRIMARY_BLUE);
 
-        // Main container panel with a subtle border
         JPanel contentPanel = new JPanel(new BorderLayout());
-        contentPanel.setOpaque(false); // Transparent! Lets the blue background shine through
+        contentPanel.setOpaque(false); 
         contentPanel.setBorder(new LineBorder(Color.LIGHT_GRAY, 2));
 
-        // --- Text Container Setup ---
-        // Create a transparent panel to neatly stack our labels
         JPanel textPanel = new JPanel(new GridBagLayout());
         textPanel.setOpaque(false); 
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0; 
-        gbc.gridy = 0; // Row 0
         gbc.insets = new Insets(5, 5, 5, 5); 
 
         // --- 1. Main Title ---
-        JLabel title = new JLabel("Mauritius Tax Management System");
+        gbc.gridy = 0;
+        JLabel title = new JLabel("Mauritius Tax Vision 2026");
         title.setForeground(Color.WHITE);
         title.setFont(new Font("SansSerif", Font.BOLD, 24));
         textPanel.add(title, gbc);
 
-        // --- 2. Subtitle / Extra Text ---
-        gbc.gridy = 1; // Move down to Row 1
-        JLabel subtitle = new JLabel("Welcome!");
-        subtitle.setForeground(new Color(200, 200, 200)); 
-        subtitle.setFont(new Font("SansSerif", Font.ITALIC, 14));
-        textPanel.add(subtitle, gbc);
+        // --- 2. The Animated Terminal Text ---
+        gbc.gridy = 1; 
+        gbc.insets = new Insets(15, 5, 5, 5);
+        // Start the label completely empty
+        dynamicTextLabel = new JLabel(""); 
+        dynamicTextLabel.setForeground(Color.WHITE); // Terminal Green
+        dynamicTextLabel.setFont(new Font("Monospaced", Font.ITALIC, 16)); // Hacker-style font
+        textPanel.add(dynamicTextLabel, gbc);
 
-        // Put the grouped text panel into the dead center of the window
         contentPanel.add(textPanel, BorderLayout.CENTER);
+        
+        // --- 3. Version & Credits ---
+        JLabel creditsLabel = new JLabel("Early Access V0.9.5 - UoM ", SwingConstants.RIGHT);
+        creditsLabel.setForeground(new Color(150, 150, 150)); 
+        creditsLabel.setFont(new Font("SansSerif", Font.PLAIN, 10)); 
+        creditsLabel.setBorder(new EmptyBorder(0, 0, 5, 10)); 
+        contentPanel.add(creditsLabel, BorderLayout.SOUTH);
+
         add(contentPanel);
-        
-     // --- 3. Version Number (Bottom Right) ---
-        // Create the label and push the text to the right side
-        JLabel versionLabel = new JLabel("Early Access v0.9.0", SwingConstants.RIGHT);
-        versionLabel.setForeground(new Color(150, 150, 150)); // Subtle grey color
-        versionLabel.setFont(new Font("SansSerif", Font.PLAIN, 10)); // Very small font
-        
-        // Add a tiny bit of padding (Top: 0, Left: 0, Bottom: 5, Right: 10) so it doesn't touch the edges
-        versionLabel.setBorder(new EmptyBorder(0, 0, 5, 10)); 
-        
-        // Snap it to the bottom of the main window
-        contentPanel.add(versionLabel, BorderLayout.SOUTH);
     }
 
     /**
-     * Displays the splash screen for 2.5 seconds before launching the app.
+     * Runs the typewriter animation and launches the app.
      */
     public void showSplash() {
         setVisible(true);
 
-        try {
-            Thread.sleep(5000); 
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        // The text we want to type out
+        String targetText = "Modernizing the Mauritian tax vision.";
+        
+        // This timer fires every 150 milliseconds to add one letter at a time
+        Timer typewriterTimer = new Timer(50, new ActionListener() {
+            int charIndex = 0;
 
-        dispose(); // Close splash screen
-
-        // Launch the LoginFrame
-        SwingUtilities.invokeLater(() -> new LoginFrame().setVisible(true));
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (charIndex < targetText.length()) {
+                    // Grab a substring from 0 to our current index
+                    dynamicTextLabel.setText(targetText.substring(0, charIndex + 1));
+                    charIndex++;
+                } else {
+                    // Typing is finished! Stop this timer.
+                    ((Timer) e.getSource()).stop();
+                    
+                    // Hold the finished text on screen for 2 seconds, then launch
+                    Timer pause = new Timer(2000, ev -> {
+                        dispose();
+                        SwingUtilities.invokeLater(() -> new LoginFrame().setVisible(true));
+                    });
+                    pause.setRepeats(false);
+                    pause.start();
+                }
+            }
+        });
+        
+        typewriterTimer.start();
     }
 
-    // THIS is the only main method your application needs to start!
     public static void main(String[] args) {
-        try { 
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); 
-        } catch (Exception e) {}
-
-        SplashWindow splash = new SplashWindow();
-        splash.showSplash();
+        try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); } catch (Exception e) {}
+        new SplashWindow().showSplash();
     }
 }
