@@ -61,8 +61,8 @@ public class LoginFrame extends JFrame {
                 // 1. Close this frame
                 this.dispose(); 
                 
-                // 2. Open the Main Calculator
-                new TaxMainFrame().setVisible(true); 
+                // 2. Navigate to MenuFrame
+                new MenuFrame().setVisible(true); 
             } else {
                 JOptionPane.showMessageDialog(this, "Invalid Credentials", "Error", JOptionPane.ERROR_MESSAGE);
             }

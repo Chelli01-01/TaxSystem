@@ -107,10 +107,12 @@ public class TaxMainFrame extends JFrame {
         JButton btnCalculate = createStyledButton("Calculate Tax", new Color(40, 167, 69));
         JButton btnSave = createStyledButton("Save to DB", new Color(0, 123, 255));
         JButton btnReceipt = createStyledButton("Generate Receipt", new Color(108, 117, 125));
-
+        JButton btnBack = createStyledButton("Back to Menu", new Color(220, 53, 69));
+        
         buttonPanel.add(btnCalculate);
         buttonPanel.add(btnSave);
         buttonPanel.add(btnReceipt);
+        buttonPanel.add(btnBack);
 
         // Layout Containers
         JPanel leftContainer = new JPanel(new BorderLayout());
@@ -170,6 +172,8 @@ public class TaxMainFrame extends JFrame {
                 JOptionPane.showMessageDialog(this, "Error generating receipt. Ensure all fields are filled.");
             }
         });
+        
+        buttonPanel.add(btnBack);
     }
 
     private void calculateTaxLogic() {
