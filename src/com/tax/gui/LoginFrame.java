@@ -89,7 +89,7 @@ public class LoginFrame extends JFrame {
         wrapper.add(card);
         add(wrapper, BorderLayout.CENTER);
 
-        // --- Logic: Database Validation ---
+        //  Database Validation 
         btnLogin.addActionListener(e -> {
             DatabaseManager db = new DatabaseManager();
             String role = db.validateLogin(userField.getText(), new String(passField.getPassword()));

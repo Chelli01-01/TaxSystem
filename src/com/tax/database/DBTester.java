@@ -6,7 +6,7 @@ public class DBTester {
     public static void main(String[] args) {
         System.out.println("=== Starting Database Connection Test ===");
         
-        // 1. Initialize your DatabaseManager
+        // 1. Initialize  DatabaseManager
         // This will trigger the constructor and load the properties file
         DatabaseManager dbManager = new DatabaseManager();
         
