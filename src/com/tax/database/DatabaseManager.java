@@ -4,8 +4,9 @@ package com.tax.database;
 //JDBC classes
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
@@ -60,41 +61,75 @@ public class DatabaseManager {
 		
 		//2. Take values and insert it into SQL 
 		public void insertTaxReturn(TaxRecord record) {
+			
+			String query = "INSERT INTO tax_returns (nicNumber, empName, empAddress, contactNum, employmentType, residentStatus, annualIncome, depAllowance, medAllowance, taxableAmount, taxPayable) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		
-			try { 
+			try 
 				//connects to the database
-				Connection connection = connection();
-				if (connection!=null) {
-				//statement
-				Statement tax_statement = connection.createStatement();
-				
-				//the SQL query to insert into the database table.
-				String query = "insert into tax_returns (nicNumber, empName, empAddress, contactNum, employmentType, annualIncome, deptAllowance, medAllowance, taxableAmount, taxPayable) VALUES ('"
-						+ record.getNic() + "', '"
-						+ record.getName() + "', '"
-						+ record.getAddress() + "', '"
-					    + record.getContactNum() + "', '" 
-						+ record.getEmpType() + "', '"
-						+ record.getAnnualIncome() + "', '"
-						+ record.getDepAllowance() + "', '"
-						+ record.getMedAllowance() + "', '"
-						+ record.getTaxableAmount() + "', '"
-						+ record.getTaxPayable() + ")";
-						
-				tax_statement.executeUpdate(query);
-				System.out.println("successfully inserted data!");
-				
-				//close the methods
-				tax_statement.close();
-				connection.close();
-				}
-				
+				(Connection connection = connection();
+				PreparedStatement ps = connection.prepareStatement(query)){
+			        
+			        if (connection != null) {
+			            ps.setString(1, record.getNic());
+			            ps.setString(2, record.getName());
+			            ps.setString(3, record.getAddress());
+			            ps.setString(4, record.getContactNum());
+			            ps.setString(5, record.getEmpType());
+			            ps.setString(6, record.getResidentStatus()); // Added this
+			            ps.setDouble(7, record.getAnnualIncome());
+			            ps.setDouble(8, record.getDepAllowance()); //
+			            ps.setDouble(9, record.getMedAllowance());
+			            ps.setDouble(10, record.getTaxableAmount());
+			            ps.setDouble(11, record.getTaxPayable());
 
-			}catch (SQLException e) {
-				System.out.println("Data insertion failed: "+e.getMessage());
-				
-			}
+			            ps.executeUpdate();
+			            System.out.println("Successfully inserted data for: " + record.getName());
+			        }
+			    } catch (SQLException e) {
+			        System.out.println("Data insertion failed: " + e.getMessage());
+			    }
 		
 		
 		}
+		
+		// Searching by NIC
+		public TaxRecord searchByNIC(String nic) {
+			TaxRecord record=null; // if no match found, we want to return 'nothing'
+			
+			Connection myConnection=connection();
+			
+			
+			if (myConnection!=null){
+				try {
+				String sql= "SELECT * FROM tax_returns WHERE nicNumber=?";
+				PreparedStatement ps= myConnection.prepareStatement(sql);
+				ps.setString(1, nic);
+				
+				ResultSet rs = ps.executeQuery();
+	            
+	            if (rs.next()) {
+	                record = new TaxRecord();
+	                // Mapping the DB columns to the object 
+	                record.setNic(rs.getString("nicNumber"));
+	                record.setName(rs.getString("empName"));
+	                record.setAddress(rs.getString("empAddress"));
+	                record.setContactNum(rs.getString("contactNum"));
+	                record.setEmpType(rs.getString("employmentType"));
+	                record.setResidentStatus(rs.getString("residentStatus"));
+	                record.setAnnualIncome(rs.getDouble("annualIncome"));
+	                record.setDepAllowance(rs.getDouble("depAllowance"));
+	                record.setMedAllowance(rs.getDouble("medAllowance"));
+	                record.setTaxableAmount(rs.getDouble("taxableAmount"));
+	                record.setTaxPayable(rs.getDouble("taxPayable"));
+	            }
+	            
+	            rs.close();
+	            ps.close();
+	            myConnection.close();
+			} catch (SQLException e) {
+	            System.out.println("Search Error: " + e.getMessage());
+	        }
+		}
+		return record;
+	}
 	}
