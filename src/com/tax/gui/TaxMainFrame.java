@@ -11,7 +11,12 @@ import com.tax.util.FileHandler;
 public class TaxMainFrame extends JFrame {
     private JTextField nameField, nicField, addressField, contactField, incomeField, medAllowanceField;
     private JTextField bankNameField, accountNumField, depCountField, depAllowanceField; 
-    private JComboBox<String> empTypeBox, residentStatusBox;
+    
+    private JComboBox<String> empTypeBox;
+    
+    private JRadioButton rbResident, rbNonResident;
+    private ButtonGroup residentGroup;
+    
     private JTextArea displayArea;
     private TaxRecord currentRecord; 
     private boolean isAdmin;
@@ -68,12 +73,30 @@ public class TaxMainFrame extends JFrame {
         addFormField(formPanel, "Contact Number:", contactField = new JTextField(20), gbc, 3);
         
         String[] empTypes = {"Full-time", "Part-time", "Contract", "Self-Employed"};
-        String[] statuses = {"Resident", "Non-Resident"};
         empTypeBox = new JComboBox<>(empTypes);
-        residentStatusBox = new JComboBox<>(statuses);
+        
+        // Create the Radio Buttons
+        rbResident = new JRadioButton("Resident");
+        rbNonResident = new JRadioButton("Non-Resident");
+        rbResident.setSelected(true); // Set Resident as default
+        
+        // Group them so only one can be selected at a time
+        residentGroup = new ButtonGroup();
+        residentGroup.add(rbResident);
+        residentGroup.add(rbNonResident);
+        
+        // Put them in a transparent mini-panel to keep them side-by-side
+        JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        statusPanel.setOpaque(false);
+        statusPanel.add(rbResident);
+        statusPanel.add(rbNonResident);
+        
+       
         
         addFormField(formPanel, "Employment Type:", empTypeBox, gbc, 4);
-        addFormField(formPanel, "Resident Status:", residentStatusBox, gbc, 5);
+        
+        addFormField(formPanel, "Resident Status:", statusPanel, gbc, 5);
+        
         addFormField(formPanel, "Annual Income (Rs):", incomeField = new JTextField(20), gbc, 6);
         addFormField(formPanel, "No. of Dependents:", depCountField = new JTextField(20), gbc, 7);
         addFormField(formPanel, "Medical Relief:", medAllowanceField = new JTextField(20), gbc, 8);
@@ -187,8 +210,17 @@ public class TaxMainFrame extends JFrame {
         nicField.setText(f.getNic());
         addressField.setText(f.getAddress());
         contactField.setText(f.getContactNum());
+        
         empTypeBox.setSelectedItem(f.getEmpType());
-        residentStatusBox.setSelectedItem(f.getResidentStatus());
+        
+        
+        if ("Non-Resident".equals(f.getResidentStatus())) {
+            rbNonResident.setSelected(true);
+        } else {
+            rbResident.setSelected(true);
+        }
+        
+        
         incomeField.setText(String.format("%.2f", f.getAnnualIncome()));
         bankNameField.setText(f.getBankName());
         accountNumField.setText(f.getAccountNumber());
@@ -243,8 +275,13 @@ public class TaxMainFrame extends JFrame {
             currentRecord.setNic(nicField.getText());
             currentRecord.setAddress(addressField.getText()); 
             currentRecord.setContactNum(contactField.getText());
+            
             currentRecord.setEmpType((String) empTypeBox.getSelectedItem());
-            currentRecord.setResidentStatus((String) residentStatusBox.getSelectedItem());
+            
+            String selectedStatus = rbResident.isSelected() ? "Resident" : "Non-Resident";
+            currentRecord.setResidentStatus(selectedStatus);
+            
+            
             currentRecord.setAnnualIncome(income);
             currentRecord.setDepAllowance(calculatedDepAllowance);
             currentRecord.setMedAllowance(med);
