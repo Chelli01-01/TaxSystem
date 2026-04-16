@@ -89,16 +89,19 @@ public class LoginFrame extends JFrame {
         wrapper.add(card);
         add(wrapper, BorderLayout.CENTER);
 
-        //  Database Validation 
+     // Inside the btnLogin.addActionListener
         btnLogin.addActionListener(e -> {
             DatabaseManager db = new DatabaseManager();
-            String role = db.validateLogin(userField.getText(), new String(passField.getPassword()));
+            String username = userField.getText(); // Store the username
+            String role = db.validateLogin(username, new String(passField.getPassword()));
 
             if (role != null) {
                 if (role.equalsIgnoreCase("admin")) {
-                    new TaxMainFrame(true).setVisible(true); 
+                    // Admin opens TaxMainFrame directly
+                    new TaxMainFrame(true, username).setVisible(true); 
                 } else {
-                    new MenuFrame().setVisible(true); 
+                    // Pass username to MenuFrame
+                    new MenuFrame(username).setVisible(true); 
                 }
                 this.dispose();
             } else {

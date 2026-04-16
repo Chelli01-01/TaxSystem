@@ -67,7 +67,7 @@ public class DatabaseManager {
                 record.setName(rs.getString("empName"));
                 record.setAddress(rs.getString("empAddress"));
                 record.setContactNum(rs.getString("contactNum"));
-                record.setEmpType(rs.getString("employmentType"));
+                record.setEmpType(rs.getString("empType"));
                 record.setResidentStatus(rs.getString("residentStatus"));
                 record.setAnnualIncome(rs.getDouble("annualIncome"));
                 record.setDepAllowance(rs.getDouble("depAllowance"));
@@ -79,5 +79,34 @@ public class DatabaseManager {
             }
         } catch (SQLException e) { }
         return record;
+    }
+    public TaxRecord searchByUsernameMapping(String username) {
+        // Change LIKE ? to involve wildcards on both sides
+        String sql = "SELECT * FROM tax_returns WHERE empName LIKE ? OR nicNumber = ?";
+        
+        try (Connection conn = connection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            // Use "%" + username + "%" so that "JeanP" can find "Jean Pierre" 
+            // OR just "Jean" if you prefer.
+            pstmt.setString(1, "%" + username.substring(0, 3) + "%"); 
+            pstmt.setString(2, username); 
+            
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                TaxRecord r = new TaxRecord();
+                // ... (keep your existing mapping code here) ...
+                r.setName(rs.getString("empName"));
+                r.setNic(rs.getString("nicNumber"));
+                r.setAddress(rs.getString("empAddress"));
+                r.setContactNum(rs.getString("contactNum"));
+                r.setBankName(rs.getString("bankName"));
+                r.setAccountNumber(rs.getString("accountNum"));
+                r.setEmpType(rs.getString("employmentType"));
+                r.setResidentStatus(rs.getString("residentStatus"));
+                return r;
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return null;
     }
 }

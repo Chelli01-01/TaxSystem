@@ -15,11 +15,14 @@ public class TaxMainFrame extends JFrame {
     private JTextArea displayArea;
     private TaxRecord currentRecord; 
     private boolean isAdmin;
+    private String userIdentifier; 
 
-    public TaxMainFrame(boolean isAdmin) {
+    public TaxMainFrame(boolean isAdmin, String userIdentifier) {
         this.isAdmin = isAdmin;
+        this.userIdentifier = userIdentifier; 
+        
         setTitle("TaxVision2026 - Mauritius Tax Management");
-        setSize(1100, 800); // Increased height for new fields
+        setSize(1100, 800); 
         setLocationRelativeTo(null);
         getContentPane().setBackground(new Color(245, 247, 250));
         setLayout(new BorderLayout(15, 15));
@@ -57,15 +60,13 @@ public class TaxMainFrame extends JFrame {
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL; 
-        gbc.insets = new Insets(6, 8, 6, 8); // Slightly tighter insets for more fields
+        gbc.insets = new Insets(6, 8, 6, 8);
 
-        // Core Profile Information
         addFormField(formPanel, "Full Name:", nameField = new JTextField(20), gbc, 0);
         addFormField(formPanel, "NIC Number:", nicField = new JTextField(20), gbc, 1);
         addFormField(formPanel, "Address:", addressField = new JTextField(20), gbc, 2); 
         addFormField(formPanel, "Contact Number:", contactField = new JTextField(20), gbc, 3);
         
-        // Employment & Residency Dropdowns
         String[] empTypes = {"Full-time", "Part-time", "Contract", "Self-Employed"};
         String[] statuses = {"Resident", "Non-Resident"};
         empTypeBox = new JComboBox<>(empTypes);
@@ -73,13 +74,9 @@ public class TaxMainFrame extends JFrame {
         
         addFormField(formPanel, "Employment Type:", empTypeBox, gbc, 4);
         addFormField(formPanel, "Resident Status:", residentStatusBox, gbc, 5);
-
-        // Financial Data
         addFormField(formPanel, "Annual Income (Rs):", incomeField = new JTextField(20), gbc, 6);
         addFormField(formPanel, "No. of Dependents:", depCountField = new JTextField(20), gbc, 7);
         addFormField(formPanel, "Medical Relief:", medAllowanceField = new JTextField(20), gbc, 8);
-        
-        // Banking Data
         addFormField(formPanel, "Bank Name:", bankNameField = new JTextField(20), gbc, 9);
         addFormField(formPanel, "Account Number:", accountNumField = new JTextField(20), gbc, 10);
         
@@ -120,7 +117,7 @@ public class TaxMainFrame extends JFrame {
             if(currentRecord != null) {
                 FileHandler.generateReceipt(currentRecord);
                 new DatabaseManager().insertTaxReturn(currentRecord);
-                JOptionPane.showMessageDialog(this, "Tax Return Submitted Successfully with Receipt Generation!");
+                JOptionPane.showMessageDialog(this, "Tax Return Submitted Successfully!");
             } else {
                 JOptionPane.showMessageDialog(this, "Please run 'Calculate' before submitting.");
             }
@@ -129,26 +126,57 @@ public class TaxMainFrame extends JFrame {
         btnSearch.addActionListener(e -> {
             TaxRecord f = new DatabaseManager().searchByNIC(txtSearchNIC.getText().trim());
             if(f != null) {
-                currentRecord = f;
-                nameField.setText(f.getName());
-                nicField.setText(f.getNic());
-                addressField.setText(f.getAddress());
-                contactField.setText(f.getContactNum());
-                empTypeBox.setSelectedItem(f.getEmpType());
-                residentStatusBox.setSelectedItem(f.getResidentStatus());
-                incomeField.setText(String.format("%.2f", f.getAnnualIncome()));
-                bankNameField.setText(f.getBankName());
-                accountNumField.setText(f.getAccountNumber());
-                depAllowanceField.setText(String.format("%.2f", f.getDepAllowance()));
-                medAllowanceField.setText(String.format("%.2f", f.getMedAllowance()));
+                populateFields(f);
                 displayArea.setText("Record Found for: " + f.getName());
             }
         });
 
         btnBack.addActionListener(e -> {
-            new MenuFrame().setVisible(true);
+            new MenuFrame(userIdentifier).setVisible(true);
             dispose();
         });
+
+        // --- 6. AUTO-FILL LOGIC FOR RECURRENT USERS ---
+        if (!isAdmin && userIdentifier != null) {
+            DatabaseManager db = new DatabaseManager();
+            // Try NIC match first
+            TaxRecord record = db.searchByNIC(userIdentifier);
+            
+            // If NIC fails, use the Username Mapping (LIKE % search)
+            if (record == null) {
+                record = db.searchByUsernameMapping(userIdentifier);
+            }
+
+            if (record != null) {
+                populateFields(record);
+                displayArea.setText("Welcome back, " + record.getName() + "!\nYour profile has been loaded.");
+            }
+            
+            if (record != null) {
+                System.out.println("DEBUG: Found record for " + record.getName()); // Add this!
+                populateFields(record);
+                displayArea.setText("Welcome back, " + record.getName() + "!\nYour profile has been loaded.");
+            } else {
+                System.out.println("DEBUG: No record found for identifier: " + userIdentifier);
+            }
+        }
+        
+    }
+    
+
+    private void populateFields(TaxRecord f) {
+        currentRecord = f;
+        nameField.setText(f.getName());
+        nicField.setText(f.getNic());
+        addressField.setText(f.getAddress());
+        contactField.setText(f.getContactNum());
+        empTypeBox.setSelectedItem(f.getEmpType());
+        residentStatusBox.setSelectedItem(f.getResidentStatus());
+        incomeField.setText(String.format("%.2f", f.getAnnualIncome()));
+        bankNameField.setText(f.getBankName());
+        accountNumField.setText(f.getAccountNumber());
+        depAllowanceField.setText(String.format("%.2f", f.getDepAllowance()));
+        medAllowanceField.setText(String.format("%.2f", f.getMedAllowance()));
     }
 
     private void calculateLogic() {
@@ -163,7 +191,6 @@ public class TaxMainFrame extends JFrame {
                 numDeps = Integer.parseInt(depCountField.getText().trim());
             }
             
-            // MRA Deduction Logic
             double calculatedDepAllowance = 0;
             if (numDeps == 1) calculatedDepAllowance = 110000;
             else if (numDeps == 2) calculatedDepAllowance = 190000;
@@ -172,11 +199,10 @@ public class TaxMainFrame extends JFrame {
 
             double totalExceptions = calculatedDepAllowance + med;
             double taxableIncome = Math.max(0, income - totalExceptions);
-            double taxPayable = taxableIncome * 0.10; // Flat 10%
+            double taxPayable = taxableIncome * 0.10;
 
             depAllowanceField.setText(String.format("%.2f", calculatedDepAllowance));
 
-            // UI Summary Display
             displayArea.setText("");
             displayArea.append("==========================================\n");
             displayArea.append("           TAX CALCULATION SUMMARY     \n");
@@ -194,9 +220,7 @@ public class TaxMainFrame extends JFrame {
             displayArea.append(String.format(" Applied Tax Rate:        10%% (Flat Rate)\n")); 
             displayArea.append(String.format(" TOTAL TAX PAYABLE:       Rs %,.2f\n", taxPayable));
             displayArea.append("==========================================\n");
-            displayArea.append(" Status: Ready for Submission\n");
 
-            // Mapping to Model for Database Persistence
             currentRecord = new TaxRecord();
             currentRecord.setName(nameField.getText());
             currentRecord.setNic(nicField.getText());
@@ -217,8 +241,6 @@ public class TaxMainFrame extends JFrame {
         }
     }
 
-    
-    // Overloaded addFormField for convenience
     private void addFormField(JPanel p, String l, JComponent f, GridBagConstraints g, int r) {
         g.gridy = r; g.gridx = 0; p.add(new JLabel(l), g);
         g.gridx = 1; p.add(f, g);

@@ -5,8 +5,9 @@ import javax.swing.border.*;
 import java.awt.*;
 
 public class MenuFrame extends JFrame {
-
-    public MenuFrame() {
+	private String sessionUser;
+	public MenuFrame(String username) {
+        this.sessionUser = username;
         setTitle("TaxVision2026 - Employee Menu");
         setSize(500, 450); // Slightly taller for better spacing
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -54,7 +55,8 @@ public class MenuFrame extends JFrame {
 
         // --- 4. Actions ---
         btnCalc.addActionListener(e -> {
-            new TaxMainFrame(false).setVisible(true); // Employee mode (no search)
+            // Pass the stored sessionUser to the next frame
+            new TaxMainFrame(false, sessionUser).setVisible(true); 
             dispose();
         });
 
