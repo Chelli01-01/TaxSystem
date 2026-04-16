@@ -124,12 +124,29 @@ public class TaxMainFrame extends JFrame {
         });
 
         btnSearch.addActionListener(e -> {
-            TaxRecord f = new DatabaseManager().searchByNIC(txtSearchNIC.getText().trim());
-            if(f != null) {
+            String searchNIC = txtSearchNIC.getText().trim();
+
+            // 1. Prevent searching with an empty box
+            if (searchNIC.isEmpty()) {
+                displayArea.setText("Search Error: Please enter an NIC Number to search.");
+                return; // Stop here
+            }
+
+            // 2. Query the database
+            TaxRecord f = new DatabaseManager().searchByNIC(searchNIC);
+
+            // 3. Update the display area based on the result
+            if (f != null) {
+                // Success: Populate the fields and show success message
                 populateFields(f);
-                displayArea.setText("Record Found for: " + f.getName());
+                displayArea.setText("Success!\nRecord Found for: " + f.getName());
+            } else {
+                // Error: Show failure message directly in the text area
+                displayArea.setText("Search Failed.\nNo active record found for NIC: " + searchNIC);
             }
         });
+        
+        
 
         btnBack.addActionListener(e -> {
             new MenuFrame(userIdentifier).setVisible(true);
