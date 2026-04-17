@@ -4,18 +4,21 @@ import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 
+//This frame manages the "Session" state by carrying the username forward.
 public class MenuFrame extends JFrame {
 	private String sessionUser;
 	public MenuFrame(String username) {
         this.sessionUser = username;
+        
+        //The Window Styling
         setTitle("TaxVision2026 - Employee Menu");
-        setSize(500, 450); // Slightly taller for better spacing
+        setSize(500, 450); 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null); 
         setLayout(new BorderLayout());
-        getContentPane().setBackground(new Color(245, 247, 250)); // Match Login BG
+        getContentPane().setBackground(new Color(245, 247, 250));
 
-        // --- 1. Header Panel ---
+        //Header Panel
         JPanel header = new JPanel();
         header.setBackground(new Color(0, 51, 102)); 
         header.setPreferredSize(new Dimension(500, 70));
@@ -25,7 +28,7 @@ public class MenuFrame extends JFrame {
         header.add(lblTitle);
         add(header, BorderLayout.NORTH);
 
-        // --- 2. Center Panel (The Card) ---
+        //Center Panel(The Card)
         JPanel wrapper = new JPanel(new GridBagLayout());
         wrapper.setOpaque(false);
         
@@ -39,13 +42,14 @@ public class MenuFrame extends JFrame {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(15, 0, 15, 0);
         gbc.gridx = 0;
+        
 
-        // --- 3. Styled Buttons ---
+        //  Styling the  Buttons 
         JButton btnCalc = createMenuButton("SUBMIT YOUR RETURNS");
         JButton btnLogout = createMenuButton("LOGOUT");
         
-        // Custom styling for Logout to distinguish it
-        btnLogout.setBackground(new Color(220, 53, 69)); // Keeping Logout red for safety
+        
+        btnLogout.setBackground(new Color(220, 53, 69)); 
 
         gbc.gridy = 0; card.add(btnCalc, gbc);
         gbc.gridy = 1; card.add(btnLogout, gbc);
@@ -53,14 +57,15 @@ public class MenuFrame extends JFrame {
         wrapper.add(card);
         add(wrapper, BorderLayout.CENTER);
 
-        // --- 4. Actions ---
+      
         btnCalc.addActionListener(e -> {
             // Pass the stored sessionUser to the next frame
             new TaxMainFrame(false, sessionUser).setVisible(true); 
-            dispose();
+            dispose();// Closing the menu to free up resources
         });
 
         btnLogout.addActionListener(e -> {
+        	// Basic safety check to prevent accidental logouts
             int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to logout?", 
                                                         "Confirm Logout", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
@@ -70,11 +75,11 @@ public class MenuFrame extends JFrame {
         });
     }
 
-    
+    //The helper method used to simplify the styling process
     private JButton createMenuButton(String text) {
         JButton btn = new JButton(text);
         btn.setPreferredSize(new Dimension(240, 45));
-        btn.setBackground(Color.BLACK); // Matching your requested Black style
+        btn.setBackground(Color.BLACK); 
         btn.setForeground(Color.WHITE);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btn.setFocusPainted(false);

@@ -8,15 +8,15 @@ import com.tax.model.TaxRecord;
 import com.tax.util.InputValidator;
 import com.tax.util.FileHandler;
 
+//This class handles data entry, complex tax calculations and database interaction.
 public class TaxMainFrame extends JFrame {
+	
+	//// UI Components for data input and display
     private JTextField nameField, nicField, addressField, contactField, incomeField, medAllowanceField;
-    private JTextField bankNameField, accountNumField, depCountField, depAllowanceField; 
-    
-    private JComboBox<String> empTypeBox;
-    
+    private JTextField bankNameField, accountNumField, depCountField, depAllowanceField;     
+    private JComboBox<String> empTypeBox;    
     private JRadioButton rbResident, rbNonResident;
     private ButtonGroup residentGroup;
-    
     private JTextArea displayArea;
     private TaxRecord currentRecord; 
     private boolean isAdmin;
@@ -26,13 +26,14 @@ public class TaxMainFrame extends JFrame {
         this.isAdmin = isAdmin;
         this.userIdentifier = userIdentifier; 
         
+        //Styling the Window
         setTitle("TaxVision2026 - Mauritius Tax Management");
         setSize(1100, 800); 
         setLocationRelativeTo(null);
         getContentPane().setBackground(new Color(245, 247, 250));
         setLayout(new BorderLayout(15, 15));
 
-        // --- 1. Header ---
+        //  Header
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(new Color(0, 51, 102));
         header.setBorder(new EmptyBorder(15, 25, 15, 25));
@@ -41,6 +42,7 @@ public class TaxMainFrame extends JFrame {
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
         
+         // Admin-only search functionality
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         searchPanel.setOpaque(false);
         JTextField txtSearchNIC = new JTextField(12);
@@ -55,7 +57,7 @@ public class TaxMainFrame extends JFrame {
         header.add(searchPanel, BorderLayout.EAST);
         add(header, BorderLayout.NORTH);
 
-        // --- 2. Input Form ---
+        // Input Form 
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBackground(Color.WHITE);
         formPanel.setBorder(new CompoundBorder(
@@ -66,7 +68,8 @@ public class TaxMainFrame extends JFrame {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL; 
         gbc.insets = new Insets(6, 8, 6, 8);
-
+        
+        // Standardizing form field
         addFormField(formPanel, "Full Name:", nameField = new JTextField(20), gbc, 0);
         addFormField(formPanel, "NIC Number:", nicField = new JTextField(20), gbc, 1);
         addFormField(formPanel, "Address:", addressField = new JTextField(20), gbc, 2); 
@@ -78,9 +81,7 @@ public class TaxMainFrame extends JFrame {
         // Create the Radio Buttons
         rbResident = new JRadioButton("Resident");
         rbNonResident = new JRadioButton("Non-Resident");
-        rbResident.setSelected(true); // Set Resident as default
-        
-        // Group them so only one can be selected at a time
+        rbResident.setSelected(true); // Setting Resident as default
         residentGroup = new ButtonGroup();
         residentGroup.add(rbResident);
         residentGroup.add(rbNonResident);
@@ -104,10 +105,10 @@ public class TaxMainFrame extends JFrame {
         addFormField(formPanel, "Account Number:", accountNumField = new JTextField(20), gbc, 10);
         
         depAllowanceField = new JTextField(20);
-        depAllowanceField.setEditable(false);
+        depAllowanceField.setEditable(false);// Calculated field should not be typed in manually
         addFormField(formPanel, "Calculated Dep. Allowance:", depAllowanceField, gbc, 11);
 
-        // --- 3. Action Buttons ---
+        //  Action Buttons 
         JButton btnCalculate = createStyledButton("CALCULATE", Color.WHITE);
         JButton btnSubmit = createStyledButton("SUBMIT RETURN", new Color(173, 216, 230)); 
         JButton btnBack = createStyledButton("BACK", new Color(255, 182, 193)); 
@@ -124,7 +125,7 @@ public class TaxMainFrame extends JFrame {
         leftContainer.add(btnPnl, BorderLayout.SOUTH);
         add(leftContainer, BorderLayout.WEST);
 
-        // --- 4. Display Area ---
+        //  Display Area
         displayArea = new JTextArea();
         displayArea.setEditable(false);
         displayArea.setFont(new Font("Monospaced", Font.BOLD, 14));
@@ -133,9 +134,10 @@ public class TaxMainFrame extends JFrame {
         scroll.setBorder(new TitledBorder("Live Calculation Summary"));
         add(scroll, BorderLayout.CENTER);
 
-        // --- 5. Listeners ---
+        // Listeners
         btnCalculate.addActionListener(e -> calculateLogic());
         
+        //Handles dual persistence: Database record + Local Text Receipt
         btnSubmit.addActionListener(e -> {
             if(currentRecord != null) {
                 FileHandler.generateReceipt(currentRecord);
@@ -145,30 +147,29 @@ public class TaxMainFrame extends JFrame {
                 JOptionPane.showMessageDialog(this, "Please run 'Calculate' before submitting.");
             }
         });
+        
+       //Admin Search Feature: Retrieves and populates fields via NIC
 
         btnSearch.addActionListener(e -> {
             String searchNIC = txtSearchNIC.getText().trim();
 
-            // 1. Prevent searching with an empty box
             if (searchNIC.isEmpty()) {
                 displayArea.setText("Search Error: Please enter an NIC Number to search.");
-                return; // Stop here
+                return; 
             }
 
-            // 2. Query the database
+            // Call DatabaseManager to find the record
             TaxRecord f = new DatabaseManager().searchByNIC(searchNIC);
 
-            // 3. Update the display area based on the result
             if (f != null) {
-                // Success: Populate the fields and show success message
-                populateFields(f);
-                displayArea.setText("Success!\nRecord Found for: " + f.getName());
+                // This method triggers the UI update for all fields
+                populateFields(f); 
+                displayArea.setText("Success!\nRecord Found for: " + f.getName() + 
+                                   "\nDetails have been loaded into the form.");
             } else {
-                // Error: Show failure message directly in the text area
-                displayArea.setText("Search Failed.\nNo active record found for NIC: " + searchNIC);
+                displayArea.setText("Search Failed.\nNo record found for NIC: " + searchNIC);
             }
         });
-        
         
 
         btnBack.addActionListener(e -> {
@@ -176,13 +177,13 @@ public class TaxMainFrame extends JFrame {
             dispose();
         });
 
-        // --- 6. AUTO-FILL LOGIC FOR RECURRENT USERS ---
+        // // If an employee logs in, we try to find their existing history to save time
         if (!isAdmin && userIdentifier != null) {
             DatabaseManager db = new DatabaseManager();
             // Try NIC match first
             TaxRecord record = db.searchByNIC(userIdentifier);
             
-            // If NIC fails, use the Username Mapping (LIKE % search)
+            // If NIC fails, we use the Username Mapping (LIKE % search)
             if (record == null) {
                 record = db.searchByUsernameMapping(userIdentifier);
             }
@@ -203,7 +204,7 @@ public class TaxMainFrame extends JFrame {
         
     }
     
-
+    //Maps TaxRecord data back into the GUI text fields.
     private void populateFields(TaxRecord f) {
         currentRecord = f;
         nameField.setText(f.getName());
@@ -213,20 +214,22 @@ public class TaxMainFrame extends JFrame {
         
         empTypeBox.setSelectedItem(f.getEmpType());
         
-        
-        if ("Non-Resident".equals(f.getResidentStatus())) {
+        // Explicitly set the radio buttons based on the database string
+        if ("Non-Resident".equalsIgnoreCase(f.getResidentStatus())) {
             rbNonResident.setSelected(true);
         } else {
             rbResident.setSelected(true);
         }
         
-        
+        // Populate numeric fields
         incomeField.setText(String.format("%.2f", f.getAnnualIncome()));
         bankNameField.setText(f.getBankName());
         accountNumField.setText(f.getAccountNumber());
         depAllowanceField.setText(String.format("%.2f", f.getDepAllowance()));
         medAllowanceField.setText(String.format("%.2f", f.getMedAllowance()));
     }
+    
+    //Applies Mauritian Tax exemptions, and deductions.
 
     private void calculateLogic() {
         if(!InputValidator.isNumeric(incomeField.getText(), "Annual Income")) return;
@@ -241,6 +244,7 @@ public class TaxMainFrame extends JFrame {
             }
             
             double calculatedDepAllowance = 0;
+         // Tiered Allowance Logic for Dependents
             if (numDeps == 1) calculatedDepAllowance = 110000;
             else if (numDeps == 2) calculatedDepAllowance = 190000;
             else if (numDeps == 3) calculatedDepAllowance = 275000;
@@ -262,26 +266,23 @@ public class TaxMainFrame extends JFrame {
             displayArea.append("------------------------------------------\n");
             displayArea.append(String.format(" Dependent Allowance:   - Rs %,.2f\n", calculatedDepAllowance));
             displayArea.append(String.format(" Medical Relief:        - Rs %,.2f\n", med));
-            displayArea.append(String.format(" TOTAL EXCEPTIONS:      = Rs %,.2f\n", totalExceptions));
+            displayArea.append(String.format(" TOTAL EXEMPTIONS:      = Rs %,.2f\n", totalExceptions));
             displayArea.append("------------------------------------------\n");
             displayArea.append(String.format(" TAXABLE INCOME:          Rs %,.2f\n", taxableIncome));
             displayArea.append("------------------------------------------\n");
             displayArea.append(String.format(" Applied Tax Rate:        10%% (Flat Rate)\n")); 
             displayArea.append(String.format(" TOTAL TAX PAYABLE:       Rs %,.2f\n", taxPayable));
             displayArea.append("==========================================\n");
-
+            
+         // Update the data model to reflect current GUI state
             currentRecord = new TaxRecord();
             currentRecord.setName(nameField.getText());
             currentRecord.setNic(nicField.getText());
             currentRecord.setAddress(addressField.getText()); 
             currentRecord.setContactNum(contactField.getText());
-            
-            currentRecord.setEmpType((String) empTypeBox.getSelectedItem());
-            
+            currentRecord.setEmpType((String) empTypeBox.getSelectedItem());            
             String selectedStatus = rbResident.isSelected() ? "Resident" : "Non-Resident";
-            currentRecord.setResidentStatus(selectedStatus);
-            
-            
+            currentRecord.setResidentStatus(selectedStatus);        
             currentRecord.setAnnualIncome(income);
             currentRecord.setDepAllowance(calculatedDepAllowance);
             currentRecord.setMedAllowance(med);
@@ -294,7 +295,8 @@ public class TaxMainFrame extends JFrame {
             JOptionPane.showMessageDialog(this, "Please enter numeric values correctly.");
         }
     }
-
+    
+ // Helper method to keep GridBagLayout code clean
     private void addFormField(JPanel p, String l, JComponent f, GridBagConstraints g, int r) {
         g.gridy = r; g.gridx = 0; p.add(new JLabel(l), g);
         g.gridx = 1; p.add(f, g);

@@ -9,7 +9,7 @@ import com.tax.model.TaxRecord;
 public class DatabaseManager {
     private Properties props = new Properties();
     
-    public DatabaseManager() {
+    public DatabaseManager() {     //We used a Properties file to enforce security regarding about credentials
         try (InputStream input = getClass().getClassLoader().getResourceAsStream("dbConfig2.properties")) {
             if (input == null) return;
             props.load(input);
@@ -21,7 +21,7 @@ public class DatabaseManager {
             return DriverManager.getConnection(props.getProperty("db.url"), props.getProperty("db.user"), props.getProperty("db.password"));
         } catch (SQLException e) { return null; }
     }
-
+   // Validates credentials and returns the user's role(admin/employee) for access control.
     public String validateLogin(String user, String pass) {
         String sql = "SELECT role FROM users WHERE username = ? AND password = ?";
         try (Connection conn = this.connection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -34,9 +34,8 @@ public class DatabaseManager {
     }
 
     public void insertTaxReturn(TaxRecord record) {
-        // Updated to include bankName and accountNum
         String query = "INSERT INTO tax_returns (nicNumber, empName, empAddress, contactNum, employmentType, residentStatus, annualIncome, depAllowance, medAllowance, taxableAmount, taxPayable, bankName, accountNum) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    
+     // Mapping TaxRecord object properties to database columns
         try (Connection conn = connection(); PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setString(1, record.getNic());
             ps.setString(2, record.getName());
@@ -55,8 +54,10 @@ public class DatabaseManager {
         } catch (SQLException e) { System.out.println("Insert Error: " + e.getMessage()); }
     }
     
+    //Fetches a specific taxpayer record by NIC. (Used by the Admin)
     public TaxRecord searchByNIC(String nic) {
         TaxRecord record = null;
+       
         String sql = "SELECT * FROM tax_returns WHERE nicNumber = ?";
         try (Connection conn = connection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, nic);
@@ -66,9 +67,9 @@ public class DatabaseManager {
                 record.setNic(rs.getString("nicNumber"));
                 record.setName(rs.getString("empName"));
                 record.setAddress(rs.getString("empAddress"));
-                record.setContactNum(rs.getString("contactNum"));
-                record.setEmpType(rs.getString("empType"));
-                record.setResidentStatus(rs.getString("residentStatus"));
+                record.setContactNum(rs.getString("contactNum"));            
+                record.setEmpType(rs.getString("employmentType")); 
+                record.setResidentStatus(rs.getString("residentStatus"));              
                 record.setAnnualIncome(rs.getDouble("annualIncome"));
                 record.setDepAllowance(rs.getDouble("depAllowance"));
                 record.setMedAllowance(rs.getDouble("medAllowance"));
@@ -77,25 +78,22 @@ public class DatabaseManager {
                 record.setBankName(rs.getString("bankName"));    
                 record.setAccountNumber(rs.getString("accountNum")); 
             }
-        } catch (SQLException e) { }
+        } catch (SQLException e) { System.out.println("Search Error: " + e.getMessage()); }
         return record;
     }
+
+    //Implements "Session Mapping" logic; we used matching (LIKE %) to link a login username to a taxpayer record for auto-filling
     public TaxRecord searchByUsernameMapping(String username) {
-        // Change LIKE ? to involve wildcards on both sides
         String sql = "SELECT * FROM tax_returns WHERE empName LIKE ? OR nicNumber = ?";
-        
-        try (Connection conn = connection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = connection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
-            // Use "%" + username + "%" so that "JeanP" can find "Jean Pierre" 
-            // OR just "Jean" if you prefer.
-            pstmt.setString(1, "%" + username.substring(0, 3) + "%"); 
+            String searchTag = (username.length() > 3) ? username.substring(0, 3) : username;
+            pstmt.setString(1, "%" + searchTag + "%"); 
             pstmt.setString(2, username); 
             
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
                 TaxRecord r = new TaxRecord();
-                // ... (keep your existing mapping code here) ...
                 r.setName(rs.getString("empName"));
                 r.setNic(rs.getString("nicNumber"));
                 r.setAddress(rs.getString("empAddress"));
@@ -104,6 +102,9 @@ public class DatabaseManager {
                 r.setAccountNumber(rs.getString("accountNum"));
                 r.setEmpType(rs.getString("employmentType"));
                 r.setResidentStatus(rs.getString("residentStatus"));
+                r.setAnnualIncome(rs.getDouble("annualIncome"));
+                r.setMedAllowance(rs.getDouble("medAllowance"));
+                r.setDepAllowance(rs.getDouble("depAllowance"));
                 return r;
             }
         } catch (SQLException e) { e.printStackTrace(); }
